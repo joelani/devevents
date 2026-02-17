@@ -29,7 +29,12 @@ const BookingSchema = new Schema<BookingDocument>(
 BookingSchema.index({ eventId: 1 });
 
 // Pre-save hook: ensure referenced Event exists before saving booking
+// Skip the DB lookup unless the document is new or the `eventId` changed.
 BookingSchema.pre<BookingDocument>("save", async function () {
+  if (!this.isNew && !this.isModified("eventId")) {
+    return;
+  }
+
   // Verify referenced event exists — prevents orphaned bookings
   const exists = await Event.findById(this.eventId).select("_id").lean();
   if (!exists) {

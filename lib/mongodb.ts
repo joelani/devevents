@@ -52,10 +52,15 @@ export async function connectToDatabase(): Promise<mongoose.Mongoose> {
       bufferCommands: false,
     };
 
+    // Create a connection promise and clear the cached promise/conn on failure
     cached.promise = mongoose
       .connect(MONGODB_URI, opts)
-      .then((mongooseInstance) => {
-        return mongooseInstance;
+      .then((mongooseInstance) => mongooseInstance)
+      .catch((err) => {
+        // Allow retries on transient failures by clearing cached state
+        cached.promise = null;
+        cached.conn = null;
+        throw err;
       });
   }
 
