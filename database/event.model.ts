@@ -120,7 +120,7 @@ EventSchema.pre<EventDocument>("save", async function () {
   if (Number.isNaN(parsed.getTime())) {
     throw new Error("Invalid date provided; expected a parseable date");
   }
-  this.date = parsed.toISOString();
+  this.date = parsed.toISOString().slice(0, 10);
 
   // Normalize time to HH:MM 24-hour format
   this.time = normalizeTime(this.time);
