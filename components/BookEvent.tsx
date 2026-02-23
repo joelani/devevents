@@ -1,11 +1,13 @@
 "use client";
+import { createBooking } from "@/lib/actions/booking.action";
+import posthog from "posthog-js";
 import { useState } from "react";
 
-interface BookEventProps {
-  eventId: string;
-}
+// interface BookEventProps {
+//   eventId: string;
+// }
 
-const BookEvent = ({ eventId }: BookEventProps) => {
+const BookEvent = ({ eventId, slug }: { eventId: string; slug: string }) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,12 +19,27 @@ const BookEvent = ({ eventId }: BookEventProps) => {
     setError(null);
 
     try {
-      // Simulate async booking process
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Here you would typically send the email and eventId to your backend API
-      setSubmitted(true);
+      const { success, error } = await createBooking({ eventId, email, slug });
+
+      if (success) {
+        setSubmitted(true);
+        posthog.capture("event_booked", {
+          eventId,
+          slug,
+          email,
+        });
+      } else {
+        console.error("Booking failed:", error);
+        setError("Failed to book your spot. Please try again.");
+        posthog.capture("booking_failed", {
+          eventId,
+          slug,
+          email,
+        });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to book event");
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Booking error:", err);
     } finally {
       setLoading(false);
     }
