@@ -6,7 +6,7 @@ import { cacheLife } from "next/cache";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-const BaseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+// const BaseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 const EventDetailItem = ({
   icon,
@@ -53,9 +53,12 @@ const EventDetailsPage = async ({
   cacheLife("hours"); // Cache this page for 60 minutes
   const { slug } = await params;
   // try {
-  const request = await fetch(`${BaseURL}/api/events/${slug}`, {
-    cache: "no-store",
-  });
+  const request = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${slug}`,
+    {
+      cache: "no-store",
+    },
+  );
 
   if (!request.ok) {
     if (request.status === 404) return notFound();

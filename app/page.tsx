@@ -3,13 +3,15 @@ import ExploreBtn from "@/components/ExploreBtn";
 import { IEvent } from "@/database/event.model";
 import { cacheLife } from "next/cache";
 
-const BaseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+// const BaseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 const page = async () => {
   "use cache";
   cacheLife("hours"); // Cache this page for 60 seconds
   try {
-    const response = await fetch(`${BaseURL}/api/events`);
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/events`,
+    );
 
     if (!response.ok) {
       // Non-2xx response; return safe empty events list
