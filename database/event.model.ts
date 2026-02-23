@@ -1,7 +1,7 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 // Strongly-typed interface for Event documents
-export interface EventDocument extends Document {
+export interface IEvent extends Document {
   title: string;
   slug: string;
   description: string;
@@ -56,25 +56,40 @@ function normalizeTime(input: string): string {
   throw new Error("Invalid time format. Use HH:MM (24h) or h:MM AM/PM");
 }
 
-const EventSchema = new Schema<EventDocument>(
+const EventSchema = new Schema<IEvent>(
   {
     title: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, index: true },
+
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
     description: { type: String, required: true, trim: true },
     overview: { type: String, required: true, trim: true },
+
     image: { type: String, required: true, trim: true },
+
     venue: { type: String, required: true, trim: true },
     location: { type: String, required: true, trim: true },
+
     date: { type: String, required: true, trim: true },
+
     time: { type: String, required: true, trim: true },
+
     mode: { type: String, required: true, trim: true },
     audience: { type: String, required: true, trim: true },
+
     agenda: {
       type: [String],
       required: true,
       validate: (v: string[]) => Array.isArray(v) && v.length > 0,
     },
+
     organizer: { type: String, required: true, trim: true },
+
     tags: {
       type: [String],
       required: true,
@@ -87,10 +102,10 @@ const EventSchema = new Schema<EventDocument>(
   },
 );
 
-// Pre-save hook: generate/refresh slug only when title changed, and normalize date/time.
-EventSchema.pre<EventDocument>("save", async function () {
-  // Generate or update slug only if title changed
-  if (this.isModified("title")) {
+// Pre-save hook: generate/refresh slug when title changed or on first save, and normalize date/time.
+EventSchema.pre<IEvent>("save", async function () {
+  // Generate or update slug if title changed or slug is not yet set (new document)
+  if (this.isModified("title") || !this.slug) {
     const base = slugify(this.title);
     let candidate = base;
     let counter = 0;
@@ -128,8 +143,8 @@ EventSchema.pre<EventDocument>("save", async function () {
 
 // Avoid model recompilation in development (Next.js hot reload)
 const Event =
-  (mongoose.models.Event as Model<EventDocument>) ||
-  mongoose.model<EventDocument>("Event", EventSchema);
+  (mongoose.models.Event as Model<IEvent>) ||
+  mongoose.model<IEvent>("Event", EventSchema);
 
 export default Event;
 export { Event };
